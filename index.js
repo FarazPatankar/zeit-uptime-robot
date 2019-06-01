@@ -51,15 +51,15 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   if (project) {
     if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState);
     if (action === 'deleteMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
       await deleteMonitor(store.uptimeRobotKey, monitor.id);
     }
     if (action === 'pauseMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
       await pauseMonitor(store.uptimeRobotKey, monitor.id);
     }
     if (action === 'resumeMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
       await resumeMonitor(store.uptimeRobotKey, monitor.id);
     }
 
@@ -75,7 +75,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
     contentToRender += monitorOverview(projectMonitors);
 
-    contentToRender += addMonitorForm(mappedProjects[0].alias);
+    contentToRender += addMonitorForm(projectsWithAliases[0].alias);
 
     contentToRender += projectMonitors.map(monitor => monitorContainer(monitor)).join("\n")
   }
