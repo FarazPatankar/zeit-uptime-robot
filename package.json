@@ -1,0 +1,6 @@
+{
+  "name": "uptime-robot",
+  "dependencies": {
+    "@zeit/integration-utils": "latest"
+  }
+}
