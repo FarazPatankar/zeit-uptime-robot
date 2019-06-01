@@ -17,7 +17,7 @@ const {
   resumeMonitor
 } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
-const { mapAliasToProjects } = require('./lib/utils');
+const { mapAliasToProjects, mapMonitorsToProjects } = require('./lib/utils');
 
 module.exports = withUiHook(async ({ payload, zeitClient }) => {
   const { clientState, action, user, team, project, configurationId } = payload;
@@ -68,7 +68,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
     
     const aliases = await fetchAliases(zeitClient);
-    const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
+    const projectsWithAliases = mapAliasToProjects(aliases, Array.of(project));
 
     const projectMonitors = monitors.filter(monitor => monitor.friendly_name.includes(project.name));
     // console.log(projectMonitors);
@@ -83,18 +83,20 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
-    console.log('Fetching account details');
+    // console.log('Fetching account details');
     // Show the user an overview of their monitors.
     // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
     contentToRender += monitorOverview(monitors);
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
-    const mappedProjects = mapAliasToProjects(aliases, projects);
+    const projectsWithAliases = mapAliasToProjects(aliases, projects);
+    const projectsWithMonitors = mapMonitorsToProjects(monitors, projectsWithAliases);
+    console.log('pwm', projectsWithMonitors);
     contentToRender += `
       <Box>
         <H2>Projects: </H2>
         <Box>
-          ${mappedProjects.map(project => projectContainer(project, ownerSlug, configurationId) ).join("\n")}
+          ${projectsWithMonitors.map(project => projectContainer(project, ownerSlug, configurationId) ).join("\n")}
         </Box>
       </Box>
     `;
