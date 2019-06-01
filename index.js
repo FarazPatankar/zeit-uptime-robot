@@ -6,7 +6,7 @@ const {
   monitorOverview,
 } = require('./lib/ui-elements');
 const { setMetadata, resetMetadata } = require('./lib/metadata-helper');
-const { getAccountDetails, getMonitors, addNewMonitor } = require('./lib/uptime-robot-api');
+const { getAccountDetails, getMonitors, addNewMonitor, deleteMonitor } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects } = require('./lib/utils');
 
@@ -43,15 +43,17 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const aliases = await fetchAliases(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
 
+    const projectMonitors = monitors.filter(monitor => monitor.friendly_name === project.name);
+    
     // Monitor based actions
     if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, mappedProjects[0]);
-
-    const projectMonitors = monitors.filter(monitor => monitor.friendly_name === project.name);
+    if (action === 'deleteMonitor') await deleteMonitor(store.uptimeRobotKey, projectMonitors[0]);
 
     contentToRender += monitorOverview(projectMonitors);
 
     contentToRender += `
       <Button action="addMonitor">Add Monitor</Button>
+      <Button action="deleteMonitor">Delete Monitor</Button>
     `
   }
 
