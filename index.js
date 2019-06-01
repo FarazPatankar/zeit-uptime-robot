@@ -51,7 +51,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
       <Box>
         <H2>Projects: </H2>
         <Box>
-          ${mappedProjects.map(project => `${projectContainer(project, ownerSlug, configurationId)}`)}
+          ${mappedProjects.map(project => projectContainer(project, ownerSlug, configurationId) )}
         </Box>
       </Box>
     `;
