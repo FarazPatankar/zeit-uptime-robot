@@ -13,7 +13,8 @@ const {
   getMonitors,
   addNewMonitor,
   deleteMonitor,
-  pauseMonitor
+  pauseMonitor,
+  resumeMonitor
 } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects } = require('./lib/utils');
@@ -45,28 +46,36 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
   // Fetching all monitors
   console.log('Fetching monitors');
+  let monitors = await getMonitors(store.uptimeRobotKey);
+
   if (project) {
     if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState);
-    const monitors = await getMonitors(store.uptimeRobotKey)
+    if (action === 'deleteMonitor') {
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      await deleteMonitor(store.uptimeRobotKey, monitor.id);
+    }
+    if (action === 'pauseMonitor') {
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      await pauseMonitor(store.uptimeRobotKey, monitor.id);
+    }
+    if (action === 'resumeMonitor') {
+      const monitor = monitors.find(monitor => monitor.url === clientState.monitorUrl);
+      await resumeMonitor(store.uptimeRobotKey, monitor.id);
+    }
+
+    // TODO: Find a better way to do this.
+    // monitors = await getMonitors(store.uptimeRobotKey);
+
+    
     const aliases = await fetchAliases(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
 
-    const projectMonitors = monitors.filter(monitor => monitor.friendly_name === project.name);
-    
-    // Monitor based actions
-    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, mappedProjects[0]);
-    if (action === 'deleteMonitor') await deleteMonitor(store.uptimeRobotKey, projectMonitors[0]);
-    if (action === 'pauseMonitor') await pauseMonitor(store.uptimeRobotKey, projectMonitors[0]);
-
     const projectMonitors = monitors.filter(monitor => monitor.friendly_name.includes(project.name));
+    // console.log(projectMonitors);
 
     contentToRender += monitorOverview(projectMonitors);
 
     contentToRender += addMonitorForm(mappedProjects[0].alias);
-    contentToRender += `
-      <Button action="pauseMonitor">Pause Monitor</Button>
-      <Button action="deleteMonitor">Delete Monitor</Button>
-    `
 
     contentToRender += projectMonitors.map(monitor => monitorContainer(monitor)).join("\n")
   }
@@ -74,7 +83,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
-    const monitors = await getMonitors(store.uptimeRobotKey)
     console.log('Fetching account details');
     // Show the user an overview of their monitors.
     // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
