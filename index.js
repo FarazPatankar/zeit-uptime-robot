@@ -4,6 +4,8 @@ const {
   keyForm,
   projectContainer,
   monitorOverview,
+  addMonitorForm,
+  monitorContainer
 } = require('./lib/ui-elements');
 const { setMetadata, resetMetadata } = require('./lib/metadata-helper');
 const { getAccountDetails, getMonitors, addNewMonitor } = require('./lib/uptime-robot-api');
@@ -37,27 +39,26 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
   // Fetching all monitors
   console.log('Fetching monitors');
-  const monitors = await getMonitors(store.uptimeRobotKey)
-
-  if(project) {
+  if (project) {
+    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState);
+    const monitors = await getMonitors(store.uptimeRobotKey)
     const aliases = await fetchAliases(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
 
     // Monitor based actions
-    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, mappedProjects[0]);
-
-    const projectMonitors = monitors.filter(monitor => monitor.friendly_name === project.name);
+    const projectMonitors = monitors.filter(monitor => monitor.friendly_name.includes(project.name));
 
     contentToRender += monitorOverview(projectMonitors);
 
-    contentToRender += `
-      <Button action="addMonitor">Add Monitor</Button>
-    `
+    contentToRender += addMonitorForm(mappedProjects[0].alias);
+
+    contentToRender += projectMonitors.map(monitor => monitorContainer(monitor)).join("\n")
   }
 
   
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
+    const monitors = await getMonitors(store.uptimeRobotKey)
     console.log('Fetching account details');
     // Show the user an overview of their monitors.
     // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
@@ -69,7 +70,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
       <Box>
         <H2>Projects: </H2>
         <Box>
-          ${mappedProjects.map(project => projectContainer(project, ownerSlug, configurationId) )}
+          ${mappedProjects.map(project => projectContainer(project, ownerSlug, configurationId) ).join("\n")}
         </Box>
       </Box>
     `;
