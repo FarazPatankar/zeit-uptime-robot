@@ -6,7 +6,7 @@ const {
   monitorOverview,
 } = require('./lib/ui-elements');
 const { setMetadata, resetMetadata } = require('./lib/metadata-helper');
-const { getAccountDetails } = require('./lib/uptime-robot-api');
+const { getAccountDetails, addNewMonitor } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects } = require('./lib/utils');
 
@@ -16,6 +16,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   const ownerSlug = team ? team.slug : user.username;
   // console.log('payload', payload);
   // console.log('store', store);
+  console.log('project', project);
 
   let contentToRender = ``;
 
@@ -36,14 +37,22 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   }
   console.log('Proceeding as we found a key.');
 
-  // Show the user an overview of their monitors.
-  console.log('Fetching account details');
-  const accountDetails = await getAccountDetails(store.uptimeRobotKey);
-  console.log(accountDetails);
-  contentToRender += monitorOverview(accountDetails);
+  if(project) {
+    const aliases = await fetchAliases(zeitClient);
+    const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
+    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, mappedProjects[0]);
+    contentToRender += `
+      <Button action="addMonitor">Add Monitor</Button>
+    `
+  }
+
   
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
+    console.log('Fetching account details');
+    // Show the user an overview of their monitors.
+    const accountDetails = await getAccountDetails(store.uptimeRobotKey);
+    contentToRender += monitorOverview(accountDetails);
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, projects);
