@@ -6,7 +6,7 @@ const {
   monitorOverview,
 } = require('./lib/ui-elements');
 const { setMetadata, resetMetadata } = require('./lib/metadata-helper');
-const { getAccountDetails, addNewMonitor } = require('./lib/uptime-robot-api');
+const { getAccountDetails, getMonitors, addNewMonitor } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects } = require('./lib/utils');
 
@@ -14,9 +14,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   const { clientState, action, user, team, project, configurationId } = payload;
   const store = await zeitClient.getMetadata();
   const ownerSlug = team ? team.slug : user.username;
-  // console.log('payload', payload);
-  // console.log('store', store);
-  console.log('project', project);
+  console.log('payload', payload);
 
   let contentToRender = ``;
 
@@ -37,10 +35,21 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   }
   console.log('Proceeding as we found a key.');
 
+  // Fetching all monitors
+  console.log('Fetching monitors');
+  const monitors = await getMonitors(store.uptimeRobotKey)
+
   if(project) {
     const aliases = await fetchAliases(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, Array.of(project));
+
+    // Monitor based actions
     if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, mappedProjects[0]);
+
+    const projectMonitors = monitors.filter(monitor => monitor.friendly_name === project.name);
+
+    contentToRender += monitorOverview(projectMonitors);
+
     contentToRender += `
       <Button action="addMonitor">Add Monitor</Button>
     `
@@ -51,8 +60,8 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   if (!project) {
     console.log('Fetching account details');
     // Show the user an overview of their monitors.
-    const accountDetails = await getAccountDetails(store.uptimeRobotKey);
-    contentToRender += monitorOverview(accountDetails);
+    // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
+    contentToRender += monitorOverview(monitors);
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
     const mappedProjects = mapAliasToProjects(aliases, projects);
