@@ -68,7 +68,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   alertContacts = await getAlertContacts(store.uptimeRobotKey);
 
   if (project) {
-    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState.monitorUrl, alertContacts);
+    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState, alertContacts);
     if (action.match(/^deleteMonitor-/)) {
       const match = action.match(/deleteMonitor-(.*)/);
       if(match) {
@@ -98,7 +98,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const projectsWithAliases = mapAliasToProjects(aliases, Array.of(project));
 
     const projectMonitors = monitors.filter(monitor => monitor.friendly_name.includes(project.name));
-    console.log(projectMonitors);
 
     // PSP
     let pspForProject = psps.find(psp => psp.friendly_name === `${project.name} Status Page`);
