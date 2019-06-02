@@ -68,7 +68,11 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   alertContacts = await getAlertContacts(store.uptimeRobotKey);
 
   if (project) {
-    if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState, alertContacts);
+    let error = null;
+    if (action === 'addMonitor') {
+      const response = await addNewMonitor(store.uptimeRobotKey, project.name, clientState, alertContacts);
+      if (response.stat === 'fail') error = response.error;
+    }
     if (action.match(/^deleteMonitor-/)) {
       const match = action.match(/deleteMonitor-(.*)/);
       if(match) {
@@ -113,7 +117,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     
     contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
 
-    contentToRender += addMonitorForm(projectsWithAliases[0].alias, action);
+    contentToRender += addMonitorForm(projectsWithAliases[0].alias, action, error);
 
     contentToRender += projectMonitors.map(monitor => monitorContainer(monitor)).join("\n")
   }
