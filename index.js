@@ -13,6 +13,7 @@ const {
   getAccountDetails,
   getAlertContacts,
   addAlertContact,
+  deleteAlertContact,
   getMonitors,
   addNewMonitor,
   deleteMonitor,
@@ -26,7 +27,8 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   const { clientState, action, user, team, project, configurationId } = payload;
   const store = await zeitClient.getMetadata();
   const ownerSlug = team ? team.slug : user.username;
-  console.log('payload', payload);
+  console.log('clientState', clientState);
+  console.log('action', action);
 
   let contentToRender = ``;
 
@@ -47,6 +49,16 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   }
   console.log('Proceeding as we found a key.');
 
+  // Handling contact actions
+  if (action === "addContact") await addAlertContact(store.uptimeRobotKey, clientState.contactToBeAdded);
+  if (action.match(/^deleteAlertContact-/)) {
+    const match = action.match(/deleteAlertContact-(.*)/);
+    if(match) {
+      const contactId = match[1];
+      await deleteAlertContact(store.uptimeRobotKey, contactId);
+    }
+  }
+
   // Fetching all monitors
   console.log('Fetching monitors');
   let monitors = await getMonitors(store.uptimeRobotKey);
@@ -56,17 +68,26 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
   if (project) {
     if (action === 'addMonitor') await addNewMonitor(store.uptimeRobotKey, project.name, clientState.monitorUrl, alertContacts);
-    if (action === 'deleteMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
-      await deleteMonitor(store.uptimeRobotKey, monitor.id);
+    if (action.match(/^deleteMonitor-/)) {
+      const match = action.match(/deleteMonitor-(.*)/);
+      if(match) {
+        const monitorId = match[1];
+        await deleteMonitor(store.uptimeRobotKey, monitorId);
+      }
     }
-    if (action === 'pauseMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
-      await pauseMonitor(store.uptimeRobotKey, monitor.id);
+    if (action.match(/^pauseMonitor-/)) {
+      const match = action.match(/pauseMonitor-(.*)/);
+      if(match) {
+        const monitorId = match[1];
+        await pauseMonitor(store.uptimeRobotKey, monitorId);
+      }
     }
-    if (action === 'resumeMonitor') {
-      const monitor = monitors.find(monitor => monitor.url === clientState.monitorToUpdate);
-      await resumeMonitor(store.uptimeRobotKey, monitor.id);
+    if (action.match(/^resumeMonitor-/)) {
+      const match = action.match(/resumeMonitor-(.*)/);
+      if(match) {
+        const monitorId = match[1];
+        await resumeMonitor(store.uptimeRobotKey, monitorId);
+      }
     }
 
     // TODO: Find a better way to do this.
@@ -100,7 +121,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     let buttonAction = "initiateContactAddition";
     let contactsContent = ``;
     let contactsHeader = ``;
-    if (action === "addContact") await addAlertContact(store.uptimeRobotKey, clientState.contactToBeAdded);
     if (action === "initiateContactAddition") {
       buttonAction = "addContact";
       contactsContent = `
@@ -123,7 +143,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         <Box display="flex">
           ${contactsContent}
           <Box display="flex" margin-left="10px" align-items="flex-end">
-            <Button action="${buttonAction}">Add Contact</Button>
+            <Button highlight action="${buttonAction}">Add Contact</Button>
           </Box>
         </Box>
       </Box>
@@ -139,9 +159,9 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     `;
   }
 
+  // <H1>Hey, ${payload.user.name}</H1>
   return `
     <Page>
-      <H1>Hey, ${payload.user.name}</H1>
       <BR />
       ${contentToRender}
     </Page>
