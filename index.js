@@ -4,6 +4,7 @@ const {
   keyForm,
   projectContainer,
   monitorOverview,
+  monitorOverviewForProject,
   addMonitorForm,
   monitorContainer,
   contactContainer
@@ -103,7 +104,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const pspForProject = await createNewPSP(store.uptimeRobotKey, project.name, monitorStringForProject)
     const pspLinkForProject = pspForProject.psp.standard_url;
     
-    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
+    contentToRender += monitorOverviewForProject(projectMonitors, project, pspLinkForProject);
 
     contentToRender += addMonitorForm(projectsWithAliases[0].alias, action);
 
