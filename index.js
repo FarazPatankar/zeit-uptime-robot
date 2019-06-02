@@ -18,7 +18,8 @@ const {
   addNewMonitor,
   deleteMonitor,
   pauseMonitor,
-  resumeMonitor
+  resumeMonitor,
+  createNewPSP
 } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects, mapMonitorsToProjects } = require('./lib/utils');
@@ -92,9 +93,17 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     const projectsWithAliases = mapAliasToProjects(aliases, Array.of(project));
 
     const projectMonitors = monitors.filter(monitor => monitor.friendly_name.includes(project.name));
-    // console.log(projectMonitors);
+    console.log(projectMonitors);
 
-    contentToRender += monitorOverview(projectMonitors, project);
+    // PSP
+    const monitorStringForProject = projectMonitors
+      .map(monitor => monitor.id)
+      .join("-");
+
+    const pspForProject = await createNewPSP(store.uptimeRobotKey, project.name, monitorStringForProject)
+    const pspLinkForProject = pspForProject.psp.standard_url;
+    
+    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
 
     contentToRender += addMonitorForm(projectsWithAliases[0].alias, action);
 
@@ -148,7 +157,9 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
       <Box>
         <H2>Projects: </H2>
         <Box>
-          ${projectsWithMonitors.map(project => projectContainer(project, ownerSlug, configurationId) ).join("\n")}
+          ${projectsWithMonitors.map(project => {
+            return projectContainer(project, ownerSlug, configurationId);
+          }).join("\n")}
         </Box>
       </Box>
     `;
