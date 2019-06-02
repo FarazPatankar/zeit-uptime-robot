@@ -57,7 +57,9 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
   }
 
-  // Fetching all monitors
+  console.log('Fetching Account Details')
+  const accountDetails = await getAccountDetails(store.uptimeRobotKey);
+
   console.log('Fetching monitors');
   let monitors = await getMonitors(store.uptimeRobotKey);
 
@@ -127,7 +129,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   if (!project) {
     // console.log('Fetching account details');
     // Show the user an overview of their monitors.
-    // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
     const projectsWithAliases = mapAliasToProjects(aliases, projects);
@@ -148,7 +149,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
       contactsHeader = `<Box margin-right="5px" font-weight="500"><P>Alert Contacts:</P></Box>`;
       contactsContent = `
         <Box flex="2" display="flex" flex-wrap="wrap">
-          ${alertContacts.map(contact => contactContainer(contact)).join("\n")}
+          ${alertContacts.map(contact => contactContainer(contact, accountDetails)).join("\n")}
         </Box>
       `;
     }
