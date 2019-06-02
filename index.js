@@ -33,19 +33,14 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   let contentToRender = ``;
 
   // Handle new key addition and existing key removal.
-  if (action === 'submit') setMetadata(zeitClient, store, clientState);
-  if (action === 'reset') resetMetadata(zeitClient, store);
+  if (action === 'submitKey') setMetadata(zeitClient, store, clientState);
+  if (action === 'resetKey') resetMetadata(zeitClient, store);
 
   // Check if we have a key and ask for one if we don't.
   if (!store.uptimeRobotKey) {
     console.log('No key found. Showing form.');
     contentToRender = keyForm;
-    return `
-      <Page>
-        <H1>Hey, ${payload.user.name}</H1>
-        ${contentToRender}
-      </Page>
-    `;
+    return contentToRender;
   }
   console.log('Proceeding as we found a key.');
 
