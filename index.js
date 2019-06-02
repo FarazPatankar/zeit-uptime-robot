@@ -107,13 +107,14 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     let pspForProject = psps.find(psp => psp.friendly_name === `${project.name} Status Page`);
     if (pspForProject) {
       if(projectMonitors.length !== pspForProject.monitors.length) {
+        console.log('here', pspForProject, projectMonitors.length)
         const pspId = await editPSP(store.uptimeRobotKey, pspForProject.id, projectMonitors);
         pspForProject = psps.find(psp => psp.id === pspId);
       }
     } else {
       pspForProject = await createNewPSP(store.uptimeRobotKey, project.name, projectMonitors);
     }
-    const pspLinkForProject = pspForProject.standard_url;
+    const pspLinkForProject = pspForProject ? pspForProject.standard_url : null;
     
     contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
 
@@ -155,7 +156,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     // PSP
     let pspForProject = psps.find(psp => psp.friendly_name === "All Monitors Status Page");
     if (!pspForProject) {
-      pspForProject = await createNewPSP(store.uptimeRobotKey, 'All Monitors');
+      pspForProject = await createNewPSP(store.uptimeRobotKey, 'All Monitors', 0);
     }
     const pspLink = pspForProject.standard_url;
     
