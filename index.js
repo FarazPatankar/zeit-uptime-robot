@@ -118,7 +118,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
     const pspLinkForProject = pspForProject ? pspForProject.standard_url : null;
     
-    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
+    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject, configurationId);
 
     contentToRender += addMonitorForm(projectsWithAliases[0].alias, action, error);
 
@@ -191,7 +191,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   // <H1>Hey, ${payload.user.name}</H1>
   return `
     <Page>
-      <BR />
       ${contentToRender}
     </Page>
   `;
