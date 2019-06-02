@@ -21,7 +21,8 @@ const {
   resumeMonitor,
   getAllPSPs,
   createNewPSP,
-  editPSP
+  editPSP,
+  deletePSP,
 } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects, mapMonitorsToProjects } = require('./lib/utils');
@@ -98,7 +99,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
 
     // TODO: Find a better way to do this.
-    // monitors = await getMonitors(store.uptimeRobotKey);
+    monitors = await getMonitors(store.uptimeRobotKey);
     
     const aliases = await fetchAliases(zeitClient);
     const projectsWithAliases = mapAliasToProjects(aliases, Array.of(project));
@@ -108,7 +109,10 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     // PSP
     let pspForProject = psps.find(psp => psp.friendly_name === `${project.name} Status Page`);
     if (pspForProject) {
-      if(projectMonitors.length !== pspForProject.monitors.length) {
+      if (projectMonitors.length === 0) {
+        await deletePSP(store.uptimeRobotKey, pspForProject.id);
+        pspForProject = null;
+      } else if (projectMonitors.length !== pspForProject.monitors.length) {
         console.log('here', pspForProject, projectMonitors.length)
         const pspId = await editPSP(store.uptimeRobotKey, pspForProject.id, projectMonitors);
         pspForProject = psps.find(psp => psp.id === pspId);
