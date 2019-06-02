@@ -4,7 +4,6 @@ const {
   keyForm,
   projectContainer,
   monitorOverview,
-  monitorOverviewForProject,
   addMonitorForm,
   monitorContainer,
   contactContainer
@@ -20,7 +19,9 @@ const {
   deleteMonitor,
   pauseMonitor,
   resumeMonitor,
-  createNewPSP
+  getAllPSPs,
+  createNewPSP,
+  editPSP
 } = require('./lib/uptime-robot-api');
 const { fetchUserProjects, fetchAliases } = require('./lib/zeit-api');
 const { mapAliasToProjects, mapMonitorsToProjects } = require('./lib/utils');
@@ -60,6 +61,9 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   console.log('Fetching monitors');
   let monitors = await getMonitors(store.uptimeRobotKey);
 
+  console.log('Fetching PSPs');
+  const psps = await getAllPSPs(store.uptimeRobotKey);
+
   console.log('Fetching alert contacts');
   alertContacts = await getAlertContacts(store.uptimeRobotKey);
 
@@ -97,14 +101,17 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     console.log(projectMonitors);
 
     // PSP
-    const monitorStringForProject = projectMonitors
-      .map(monitor => monitor.id)
-      .join("-");
-
-    const pspForProject = await createNewPSP(store.uptimeRobotKey, project.name, monitorStringForProject)
-    const pspLinkForProject = pspForProject.psp.standard_url;
+    let pspForProject = psps.find(psp => psp.friendly_name === `${project.name} Status Page`);
+    if (pspForProject) {
+      // We have already created a PSP for this Project
+      const pspId = await editPSP(store.uptimeRobotKey, pspForProject.id, projectMonitors);
+      pspForProject = psps.find(psp => psp.id === pspId);
+    } else {
+      pspForProject = await createNewPSP(store.uptimeRobotKey, project.name, projectMonitors);
+    }
+    const pspLinkForProject = pspForProject.standard_url;
     
-    contentToRender += monitorOverviewForProject(projectMonitors, project, pspLinkForProject);
+    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject);
 
     contentToRender += addMonitorForm(projectsWithAliases[0].alias, action);
 
@@ -116,7 +123,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     // console.log('Fetching account details');
     // Show the user an overview of their monitors.
     // const accountDetails = await getAccountDetails(store.uptimeRobotKey);
-    contentToRender += monitorOverview(monitors, project);
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
     const projectsWithAliases = mapAliasToProjects(aliases, projects);
@@ -141,6 +147,17 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
         </Box>
       `;
     }
+
+    // PSP
+    let pspForProject = psps.find(psp => psp.friendly_name === "All Monitors Status Page");
+    if (!pspForProject) {
+      pspForProject = await createNewPSP(store.uptimeRobotKey, 'All Monitors');
+    }
+    console.log('poo', pspForProject);
+    const pspLink = pspForProject.standard_url;
+    
+    contentToRender += monitorOverview(monitors, project, pspLink);
+
     // <Box color="#3da63c">Please click the link in the confirmation email to activate the new addition.</Box>
     contentToRender += `
       <Box>
