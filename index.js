@@ -6,7 +6,8 @@ const {
   monitorOverview,
   addMonitorForm,
   monitorContainer,
-  contactContainer
+  contactContainer,
+  noProjectsMessage
 } = require('./lib/ui-elements');
 const { setMetadata, resetMetadata } = require('./lib/metadata-helper');
 const {
@@ -132,7 +133,8 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
     const aliases = await fetchAliases(zeitClient);
-    const projects = await fetchUserProjects(zeitClient);
+    let projects = await fetchUserProjects(zeitClient);
+    if (projects.length === 0) return noProjectsMessage(ownerSlug);
     const projectsWithAliases = mapAliasToProjects(aliases, projects);
     const projectsWithMonitors = mapMonitorsToProjects(monitors, projectsWithAliases);
 
