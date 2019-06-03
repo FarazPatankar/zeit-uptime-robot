@@ -4,7 +4,7 @@
   "builds": [
     { "src": "docs.html", "use": "@now/static" },
     { "src": "index.js", "use": "@now/node" },
-    { "src": "assets/*", "use": "@now/static" }
+    { "src": "assets/**/*", "use": "@now/static" }
   ],
   "env": { "HOST": "https://uptime-robot.farazpatankar.now.sh/" },
   "routes": [{ "src": "/docs", "dest": "/docs.html" }]
