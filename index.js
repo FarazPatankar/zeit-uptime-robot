@@ -122,7 +122,7 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
     }
     const pspLinkForProject = pspForProject ? pspForProject.standard_url : null;
     
-    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject, configurationId);
+    contentToRender += monitorOverview(projectMonitors, project, pspLinkForProject, configurationId, ownerSlug);
 
     contentToRender += addMonitorForm(projectsWithAliases[0].alias, action, error);
 
@@ -131,8 +131,6 @@ module.exports = withUiHook(async ({ payload, zeitClient }) => {
 
   // Check if the user is inside a project. If not, show list of projects.
   if (!project) {
-    // console.log('Fetching account details');
-    // Show the user an overview of their monitors.
     const aliases = await fetchAliases(zeitClient);
     const projects = await fetchUserProjects(zeitClient);
     const projectsWithAliases = mapAliasToProjects(aliases, projects);
