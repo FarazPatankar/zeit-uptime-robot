@@ -2,10 +2,9 @@
   <img src="./assets/logo.svg" alt="Uptime Robot">
   <br>
   <h1>Uptime Robot For Zeit</h1>
-  <br>
-  <h3>Setup monitors for your apps straight from your Zeit dashboard and get alerted when things don't work as expected.</h3>
+  <h4>Setup monitors for your apps straight from your Zeit dashboard.<br>Get alerted when things don't work as expected.</h4>
 </div>
-
+<br>
 ## Features
 
 - Provision monitors for all your projects and change their status.
@@ -23,12 +22,12 @@
 ## Screenshots
 
 <div float="left">
-  <img src='./assets/screenshots/setup.jpg' width="40%" />
-  <img src='./assets/screenshots/dashboard.jpg' width="40%" />
+  <img src='./assets/screenshots/setup.jpg' width="49%" />
+  <img src='./assets/screenshots/dashboard.jpg' width="49%" />
 </div>
 <div float="left">
-  <img src='./assets/screenshots/monitors.jpg' width="40%" />
-  <img src='./assets/screenshots/status-page.jpg' width="40%" />
+  <img src='./assets/screenshots/monitors.jpg' width="49%" />
+  <img src='./assets/screenshots/status-page.jpg' width="49%" />
 </div>
 
 ## Contribute
