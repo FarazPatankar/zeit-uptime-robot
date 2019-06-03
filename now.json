@@ -1,6 +1,7 @@
 {
   "name": "uptime-robot",
   "version": 2,
+  "alias": "zeit-uptime.tech",
   "builds": [
     { "src": "docs.html", "use": "@now/static" },
     { "src": "index.js", "use": "@now/node" },
